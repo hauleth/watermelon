@@ -4,6 +4,9 @@ defmodule Watermelon.Case do
       use Watermelon.DSL
 
       import unquote(__MODULE__), only: [feature_file: 1]
+
+      @feature_defined false
+      @step_modules []
     end
   end
 
@@ -28,6 +31,8 @@ defmodule Watermelon.Case do
   defp generate_feature_test(module, feature) do
     if Module.get_attribute(module, :feature_defined) do
       raise "You can define only one feature per module"
+    else
+      Module.put_attribute(module, :feature_defined, true)
     end
 
     quote location: :keep, bind_quoted: [feature: Macro.escape(feature)] do
@@ -58,11 +63,10 @@ defmodule Watermelon.Case do
           )
         end
       end
-
-      @feature_defined true
     end
   end
 
+  @doc false
   def run_steps(steps, context, modules) do
     steps
     |> Enum.reduce(context, fn %{text: text}, context ->

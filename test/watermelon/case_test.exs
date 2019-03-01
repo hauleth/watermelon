@@ -1,27 +1,27 @@
 defmodule Watermelon.CaseTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   use Watermelon.Case
 
   defmodule Foo do
     use Watermelon.DSL
 
-    defgiven ~r/submission named/ do
+    defgiven match(_, _) when "submission named {string} described as {string}" do
       :ok
     end
 
-    defgiven ~r/subscribing/ do
+    defgiven match(_) when "subscribing to {string}" do
       :ok
     end
 
-    defwhen ~r/create submission/ do
+    defwhen match when "create submission" do
       :ok
     end
 
-    defthen ~r/is listed/ do
+    defthen match when "it is listed in all submissions" do
       :ok
     end
 
-    defthen ~r/there is event/ do
+    defthen match when "there is event" do
       :ok
     end
   end
