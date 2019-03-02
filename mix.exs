@@ -21,7 +21,18 @@ defmodule Watermelon.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:gherkin, "~> 1.6.0"}
+      {:gherkin, "~> 1.6.0"},
+
+      # Documentation
+      {:ex_doc, ">= 0.0.0", only: [:dev], runtime: false},
+      {:inch_ex, "~> 2.0", only: [:dev], runtime: false},
+
+      # Development
+      {:credo, ">= 0.0.0", only: [:dev], runtime: false},
+      {:dialyxir, "~> 1.0.0-rc.4", only: [:dev], runtime: false},
+
+      # Testing
+      {:stream_data, "~> 0.4.0", only: [:test]}
     ]
   end
 end

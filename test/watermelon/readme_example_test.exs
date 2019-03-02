@@ -20,19 +20,19 @@ defmodule Watermelon.ReadmeExampleTest do
 
   feature_file "coffee.feature"
 
-  defgiven match(number) when ~r/^there (?:is|are) (?<number>\d+) coffee(?:s) left in the machine$/ do
+  defgiven match(number) when "there are {int} coffee(s) left in the machine" do
     {:ok, %{machine: Machine.put_coffee(Machine.new, number)}}
   end
 
-  defgiven match(number) when ~r/^I have deposited £(?<number>\d+)$/, context: %{user: user, machine: machine} do
-    {:ok, %{machine: Machine.deposit(machine, user, number)}}
+  defgiven match(number) when "I have deposited £{int}", context: %{machine: machine} do
+    {:ok, %{machine: Machine.deposit(machine, nil, number)}}
   end
 
-  defwhen match when ~r/^I press the coffee button$/, context: state do
+  defwhen match when "I press the coffee button", context: state do
     Machine.press_coffee(state.machine)
   end
 
-  defthen match when ~r/^I should be served a coffee$/, context: state do
+  defthen match when "I should be served a coffee", context: state do
     assert :coffee == Machine.take_drink(state.machine)
   end
 end

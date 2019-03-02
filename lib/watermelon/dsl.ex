@@ -1,4 +1,59 @@
 defmodule Watermelon.DSL do
+  @moduledoc """
+  Module with helper functions for defining Gherkin steps.
+
+  ## Defining steps
+
+  There are 3 helper macros that allows you to define steps for your feature
+  specs:
+
+  - `defgiven/3`
+  - `defwhen/3`
+  - `defthen/3`
+
+  All with exactly the same syntax:
+
+  ```elixir
+  defgiven match(a, b) when "sum of {int} and {int}" do
+    {:ok, sum: a + b}
+  end
+  ```
+
+  Syntax for `when` part is identical with `Watermelon.Expression.from/1` so you
+  can provide either `Regex` or string. Matching groups are then the arguments
+  for `match` function.
+
+  ## Context
+
+  Step definition can access and modify it's context which is a way to propagate
+  values between different steps.
+
+  Return value can be one of:
+
+  - `true`
+  - `:ok`
+  - keyword list
+  - map
+  - tuple `{:ok, map() | keyword()}`
+
+  In case of keyword list or map, the returned values will be merged into current
+  context. When it is `:ok` or `true` then the context will be left as is.
+
+  Context can be made available by using `:context` option:
+
+  ```elixir
+  defwhen match(a) when "I multiply sum by {int}", context: ctx do
+    {:ok, result: a * ctx.sum}
+  end
+  ```
+
+  ## TODO
+
+  - add support for data table
+  - add support for doc strings
+  """
+
+  @doc false
   defmacro __using__(_opts) do
     quote do
       import unquote(__MODULE__)
@@ -12,32 +67,26 @@ defmodule Watermelon.DSL do
   defmacro __before_compile__(env) do
     steps = Module.get_attribute(env.module, :steps)
 
-    quote location: :keep, bind_quoted: [steps: Macro.escape(steps)] do
+    quote bind_quoted: [steps: Macro.escape(steps)] do
       def apply_step(text, context) do
         unquote(steps)
-        |> Enum.find_value({false, context}, fn {regex, transforms, name} ->
-          case Regex.run(regex, text) do
-            nil ->
-              nil
+        |> Enum.find_value(:error, fn {match, name} ->
+          case Watermelon.Expression.match(match, text) do
+            {:ok, matches} ->
+              {:ok, Watermelon.DSL.apply(__MODULE__, name, matches, context)}
 
-            [_ | matches] ->
-              {true, Watermelon.DSL.apply(__MODULE__, name, matches, transforms, context)}
+            :error -> false
           end
         end)
       end
     end
   end
 
-  def apply(mod, name, matches, transforms, context) when is_map(context) do
-    args =
-      if transforms do
-        for {{mod, func}, match} <- Enum.zip(transforms, matches), do: apply(mod, func, [match])
-      else
-        matches
-      end
-
-    case apply(mod, name, [context | args]) do
-      :ok -> context
+  @doc false
+  def apply(mod, name, matches, context) when is_map(context) do
+    case apply(mod, name, [context | matches]) do
+      true -> {:ok, context}
+      :ok -> {:ok, context}
       {:ok, map} -> {:ok, Map.merge(context, Map.new(map))}
       value when is_map(value) or is_list(value) -> {:ok, Map.merge(context, Map.new(value))}
       other -> other
@@ -45,29 +94,20 @@ defmodule Watermelon.DSL do
   end
 
   defmacro defgiven({:when, _, [{:match, _, params}, match]}, options \\ [], do: body) do
-    context = Keyword.get(options, :context, quote(do: _))
-    params = params || []
-
-    add_step(:given, match, params, context, body)
+    add_step(:given, match, params, options, body)
   end
 
   defmacro defwhen({:when, _, [{:match, _, params}, match]}, options \\ [], do: body) do
-    context = Keyword.get(options, :context, quote(do: _))
-    params = params || []
-
-    add_step(:given, match, params, context, body)
+    add_step(:given, match, params, options, body)
   end
 
   defmacro defthen({:when, _, [{:match, _, params}, match]}, options \\ [], do: body) do
-    context = Keyword.get(options, :context, quote(do: _))
-    params = params || []
-
-    add_step(:given, match, params, context, body)
+    add_step(:given, match, params, options, body)
   end
 
-  defp add_step(step_type, match, params, context, body) do
-    params = Macro.escape(params)
-    context = Macro.escape(context)
+  defp add_step(step_type, match, params, opts, body) do
+    params = Macro.escape(params || [])
+    context = optional(opts, :context)
     body = Macro.escape(body, unquote: true)
 
     quote bind_quoted: [
@@ -86,15 +126,27 @@ defmodule Watermelon.DSL do
     end
   end
 
+  @doc """
+  Register new step function.
+
+  Returns function name that must be used in step definition.
+  """
+  @spec register_step(Macro.Env.t(), atom(), Watermelon.Expression.t()) :: atom()
   def register_step(%{module: module}, type, expression) do
     name = :"step #{type} #{expression.raw}"
 
     Module.put_attribute(
       module,
       :steps,
-      Macro.escape({expression.regex, expression.transforms, name})
+      Macro.escape({expression, name})
     )
 
     name
+  end
+
+  defp optional(opts, key) do
+    opts
+    |> Keyword.get(key, quote(do: _))
+    |> Macro.escape()
   end
 end
