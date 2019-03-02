@@ -4,10 +4,12 @@ defmodule Watermelon.MixProject do
   def project do
     [
       app: :watermelon,
+      description: "Super simple Gherkin features to ExUnit tests translator",
       version: "0.1.0",
       elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      package: package()
     ]
   end
 
@@ -15,6 +17,16 @@ defmodule Watermelon.MixProject do
   def application do
     [
       extra_applications: [:logger]
+    ]
+  end
+
+  defp package do
+    [
+      licenses: ["MPL-2.0"],
+      links: %{
+        "Github" => "https://github.com/hauleth/watermelon",
+        "Gherkin Reference" => "https://docs.cucumber.io/gherkin/reference/"
+      }
     ]
   end
 

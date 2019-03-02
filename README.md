@@ -1,23 +1,24 @@
 # Watermelon
 
-Super simple Gherkin features translator to ExUnit tests.
+Super simple Gherkin features to ExUnit tests translator.
+
+Inspired by [Cabbage][], but with slightly different API and few ideas of my own
+to simplify working with the library.
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `watermelon` to your list of dependencies in `mix.exs`:
+The package can be installed by adding `watermelon` to your list of dependencies
+in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:watermelon, "~> 0.1.0"}
+    {:watermelon, "~> 0.1.0", only: [:test]}
   ]
 end
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/watermelon](https://hexdocs.pm/watermelon).
+The docs can be found at [https://hexdocs.pm/watermelon](https://hexdocs.pm/watermelon).
 
 ## Usage
 
@@ -66,3 +67,10 @@ defmodule MyTest do
   end
 end
 ```
+
+## LICENSE
+
+Mozilla Public License 2.0, see [LICENSE](LICENSE).
+
+[Cabbage]: https://github.com/cabbage-ex/cabbage
+[white-bread]: https://github.com/meadsteve/white-bread
