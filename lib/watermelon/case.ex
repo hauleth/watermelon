@@ -179,7 +179,7 @@ defmodule Watermelon.Case do
       end
 
       for %Gherkin.Elements.Scenario{name: scenario_name, steps: steps, tags: tags} <- feature.scenarios do
-        name = ExUnit.Case.register_test(__ENV__, :scenario, scenario_name, tags)
+        name = ExUnit.Case.register_test(__ENV__, :scenario, "#{feature.name} - #{scenario_name}", tags)
 
         def unquote(name)(context) do
           Watermelon.Case.run_steps(
