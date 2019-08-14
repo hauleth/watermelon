@@ -126,7 +126,7 @@ defmodule Watermelon.Case do
   defmacro feature(string) do
     feature = Gherkin.parse(string)
 
-    generate_feature_test(__CALLER__.module, feature)
+    generate_feature_test(feature)
   end
 
   @doc """
@@ -156,16 +156,10 @@ defmodule Watermelon.Case do
 
     Module.put_attribute(__CALLER__.module, :external_attribute, filename)
 
-    generate_feature_test(__CALLER__.module, feature)
+    generate_feature_test(feature)
   end
 
-  defp generate_feature_test(module, feature) do
-    if Module.get_attribute(module, :feature_defined) do
-      raise "You can define only one feature per module"
-    else
-      Module.put_attribute(module, :feature_defined, true)
-    end
-
+  defp generate_feature_test(feature) do
     quote location: :keep, bind_quoted: [feature: Macro.escape(feature)] do
       step_modules =
         cond do
