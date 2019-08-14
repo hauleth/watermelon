@@ -101,7 +101,7 @@ defmodule Watermelon.Expression do
     do: %Type{name: "int", regexp: ~r/-?\d+/, transform: &String.to_integer/1}
 
   defp get_type("float"),
-    do: %Type{name: "float", regexp: ~r/-?\d*\.\d+(?:e\d+)?/, transform: &float/1}
+    do: %Type{name: "float", regexp: ~r/-?\d*\.\d+(?:e-?\d+)?/, transform: &float/1}
 
   defp get_type("word"),
     do: %Type{name: "word", regexp: ~r/\w+/, transform: & &1}
