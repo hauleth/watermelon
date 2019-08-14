@@ -96,7 +96,7 @@ defmodule Watermelon.ExpressionTest do
     property "{int} returns value parsed to integer" do
       matcher = Subject.from("{int}")
 
-      check all num <- integer() do
+      check all(num <- integer()) do
         assert {:ok, [num]} == Subject.match(matcher, "#{num}")
       end
     end
@@ -104,7 +104,7 @@ defmodule Watermelon.ExpressionTest do
     property "{float} returns value parsed to float" do
       matcher = Subject.from("{float}")
 
-      check all num <- float() do
+      check all(num <- float()) do
         assert {:ok, [num]} == Subject.match(matcher, "#{num}")
       end
     end
@@ -121,7 +121,7 @@ defmodule Watermelon.ExpressionTest do
       assert {:ok, [0.0]} == Subject.match(matcher, ".0")
       assert {:ok, [0.0]} == Subject.match(matcher, "-.0")
 
-      check all frac <- positive_integer() do
+      check all(frac <- positive_integer()) do
         float = String.to_float("0.#{frac}")
 
         assert {:ok, [float]} == Subject.match(matcher, ".#{frac}")
@@ -136,7 +136,7 @@ defmodule Watermelon.ExpressionTest do
     end
 
     property "{word} matches single word" do
-      check all word <- string(:alphanumeric, min_length: 1) do
+      check all(word <- string(:alphanumeric, min_length: 1)) do
         matcher = Subject.from("{word}")
         assert {:ok, [word]} == Subject.match(matcher, word)
 
@@ -191,12 +191,14 @@ defmodule Watermelon.ExpressionTest do
 
     test "transform function is called with matches" do
       name = "date#{System.unique_integer()}"
+
       Subject.register_type(name, ~r/(\d{4})-(\d{2})-(\d{2})/, fn _, year, month, day ->
-        {:ok, date} = Date.new(
-          String.to_integer(year),
-          String.to_integer(month),
-          String.to_integer(day)
-        )
+        {:ok, date} =
+          Date.new(
+            String.to_integer(year),
+            String.to_integer(month),
+            String.to_integer(day)
+          )
 
         date
       end)

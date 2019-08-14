@@ -28,5 +28,5 @@ defmodule Watermelon.CaseTest do
 
   @step_modules [Foo]
 
-  feature_file "agenda.feature"
+  feature_file("agenda.feature")
 end

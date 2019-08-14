@@ -116,13 +116,15 @@ defmodule Watermelon.Expression do
     types = Application.get_env(:watermelon, :types, %{})
 
     case Map.fetch(types, name) do
-      {:ok, %Type{} = type} -> type
+      {:ok, %Type{} = type} ->
+        type
+
       :error ->
         proposals =
           types
           |> Map.keys()
           |> Enum.concat(~w[int float word string])
-          |> Enum.filter(& String.jaro_distance(&1, name) > 0.5)
+          |> Enum.filter(&(String.jaro_distance(&1, name) > 0.5))
           |> Enum.sort()
           |> Enum.join("\n    ")
 

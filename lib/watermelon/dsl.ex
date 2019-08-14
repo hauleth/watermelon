@@ -79,7 +79,8 @@ defmodule Watermelon.DSL do
             {:ok, matches} ->
               {:ok, Watermelon.DSL.apply(__MODULE__, name, matches, context)}
 
-            :error -> false
+            :error ->
+              false
           end
         end)
       end

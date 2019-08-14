@@ -18,10 +18,10 @@ defmodule Watermelon.ReadmeExampleTest do
     end
   end
 
-  feature_file "coffee.feature"
+  feature_file("coffee.feature")
 
   defgiven match(number) when "there are {int} coffee(s) left in the machine" do
-    {:ok, %{machine: Machine.put_coffee(Machine.new, number)}}
+    {:ok, %{machine: Machine.put_coffee(Machine.new(), number)}}
   end
 
   defgiven match(number) when "I have deposited £{int}", context: %{machine: machine} do
