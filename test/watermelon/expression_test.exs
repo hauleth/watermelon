@@ -97,6 +97,12 @@ defmodule Watermelon.ExpressionTest do
       end
     end
 
+    test "{float} accepts floats with negative exponent" do
+      matcher = Subject.from("{float}")
+
+      assert {:ok, [-6.3e-30]} == Subject.match(matcher, "-6.3e-30")
+    end
+
     property "{float} do not need preceding digits" do
       matcher = Subject.from("{float}")
 
