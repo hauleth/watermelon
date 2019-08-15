@@ -138,7 +138,7 @@ defmodule Watermelon.DSL do
   """
   @spec register_step(Macro.Env.t(), atom(), Watermelon.Expression.t()) :: atom()
   def register_step(%{module: module}, type, expression) do
-    name = :"step #{type} #{expression.raw}"
+    name = :"step #{type} #{Watermelon.Expression.raw(expression)}"
 
     Module.put_attribute(
       module,

@@ -17,7 +17,7 @@ defmodule Watermelon.Case do
   ```elixir
   defmodule MyApp.FeatureTest do
     use ExUnit.Case, async: true
-    use #{inspect __MODULE__}
+    use #{inspect(__MODULE__)}
 
     feature \"\"\"
     Feature: Example
@@ -64,14 +64,14 @@ defmodule Watermelon.Case do
   ## Importing steps from different modules
 
   In time amount of steps can grow and grow, and a lot of them will repeat between
-  different tests, so for your convenience `#{inspect __MODULE__}` provide a way for
+  different tests, so for your convenience `#{inspect(__MODULE__)}` provide a way for
   importing steps definitions from other modules via setting `@step_modules` module
   attribute. For example to split above steps we can use:
 
   ```elixir
   defmodule MyApp.FeatureTest do
     use ExUnit.Case, async: true
-    use #{inspect __MODULE__}
+    use #{inspect(__MODULE__)}
 
     @step_modules [
       MyApp.StackSteps
@@ -109,7 +109,7 @@ defmodule Watermelon.Case do
   ```elixir
   defmodule ExampleTest do
     use ExUnit.Case
-    use #{inspect __MODULE__}
+    use #{inspect(__MODULE__)}
 
     feature \"\"\"
     Feature: Inline feature
@@ -141,7 +141,7 @@ defmodule Watermelon.Case do
   ```elixir
   defmodule ExampleTest do
     use ExUnit.Case
-    use #{inspect __MODULE__}
+    use #{inspect(__MODULE__)}
 
     feature_file "my_feature.feature"
 
@@ -178,13 +178,21 @@ defmodule Watermelon.Case do
         )
       end
 
-      for %Gherkin.Elements.Scenario{name: scenario_name, steps: steps, tags: tags} <- feature.scenarios do
-        name = ExUnit.Case.register_test(__ENV__, :scenario, "#{feature.name} - #{scenario_name}", tags)
+      for %Gherkin.Elements.Scenario{name: scenario_name, steps: steps, tags: tags} <-
+            feature.scenarios do
+        name =
+          ExUnit.Case.register_test(
+            __ENV__,
+            :scenario,
+            "#{feature.name} - #{scenario_name}",
+            tags
+          )
 
         def unquote(name)(context) do
           Watermelon.Case.run_steps(
             unquote(Macro.escape(steps)),
-            context, unquote(step_modules)
+            context,
+            unquote(step_modules)
           )
         end
       end
@@ -199,7 +207,7 @@ defmodule Watermelon.Case do
       |> Enum.find_value(:error, &step(&1, text, context))
       |> case do
         {_, {:ok, context}} -> context
-        {_, other} -> raise "Unexpected return value `#{inspect other}` in step `#{text}`"
+        {_, other} -> raise "Unexpected return value `#{inspect(other)}` in step `#{text}`"
         :error -> raise "Definition for `#{text}` not found"
       end
     end)

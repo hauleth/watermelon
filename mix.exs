@@ -10,6 +10,9 @@ defmodule Watermelon.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       package: package(),
+      elixirc_options: [
+        warnings_as_errors: true
+      ],
       preferred_cli_env: [
         coveralls: :test,
         "coveralls.html": :test,

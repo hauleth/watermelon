@@ -7,8 +7,12 @@ defmodule Watermelon.ExpressionTest do
   doctest Subject
 
   defp non_escaped_string do
-    gen all source <- string(:printable),
-      do: String.replace(source, ~W[( ) \ { }], "")
+    gen(
+      all(
+        source <- string(:printable),
+        do: String.replace(source, ~W[( ) \ { }], "")
+      )
+    )
   end
 
   describe "from/1 with regexp" do
@@ -148,16 +152,25 @@ defmodule Watermelon.ExpressionTest do
 
     property "{string} matches quoted string" do
       matcher = Subject.from("{string}")
+      quotes = ~w[' "]
 
-      check all(string <- non_escaped_string()) do
-        assert {:ok, [string]} == Subject.match(matcher, ~s("#{string}"))
-        assert {:ok, [string]} == Subject.match(matcher, ~s('#{string}'))
+      for q <- quotes do
+        check all(
+                string <- non_escaped_string(),
+                not String.contains?(string, q)
+              ) do
+          assert {:ok, [string]} == Subject.match(matcher, q <> string <> q)
+          assert :error == Subject.match(matcher, q <> string)
+          assert :error == Subject.match(matcher, string <> q)
+        end
+      end
 
-        assert :error == Subject.match(matcher, ~s("#{string}))
-        assert :error == Subject.match(matcher, ~s('#{string}))
-
-        assert :error == Subject.match(matcher, ~s(#{string}"))
-        assert :error == Subject.match(matcher, ~s(#{string}'))
+      check all(
+              string <- non_escaped_string(),
+              not String.contains?(string, quotes)
+            ) do
+        assert :error == Subject.match(matcher, ~s('#{string}"))
+        assert :error == Subject.match(matcher, ~s("#{string}'))
       end
     end
 
