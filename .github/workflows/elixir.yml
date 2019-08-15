@@ -10,7 +10,7 @@ jobs:
       matrix:
         elixir_version: [1.9.1, 1.8.2, 1.7.4]
     container:
-      image: elixir:${{ matrix.elixir_version }}-slim
+      image: elixir:${{ matrix.elixir_version }}
 
     steps:
     - uses: actions/checkout@master
@@ -20,4 +20,8 @@ jobs:
         mix local.hex --force
         mix deps.get
     - name: Run Tests
-      run: mix test
+      run: mix coveralls.json
+    - name: Publish coverage
+      run: curl -s https://codecov.io/bash | bash /dev/stdin -F elixir_$(echo ${{ matrix.elixir_version }} | tr . _)
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
