@@ -6,17 +6,26 @@ defmodule Watermelon.ExpressionTest do
 
   doctest Subject
 
+  defp non_escaped_string do
+    gen all source <- string(:printable),
+      do: String.replace(source, ~W[( ) \ { }], "")
+  end
+
   describe "from/1 with regexp" do
     property "contains the same regexp as passed in" do
-      check all source <- string(:printable),
-                {:ok, regex} = Regex.compile(source) do
+      check all(
+              source <- non_escaped_string(),
+              {:ok, regex} = Regex.compile(source)
+            ) do
         assert %Subject{match: ^regex} = Subject.from(regex)
       end
     end
 
     property "raw contains regex source" do
-      check all source <- string(:printable),
-                {:ok, regex} = Regex.compile(source) do
+      check all(
+              source <- non_escaped_string(),
+              {:ok, regex} = Regex.compile(source)
+            ) do
         assert %Subject{raw: ^source} = Subject.from(regex)
       end
     end
@@ -24,7 +33,7 @@ defmodule Watermelon.ExpressionTest do
 
   describe "from/1 with expression" do
     property "raw contains source" do
-      check all source <- string(:printable) do
+      check all(source <- non_escaped_string()) do
         assert %Subject{raw: ^source} = Subject.from(source)
       end
     end
@@ -44,8 +53,10 @@ defmodule Watermelon.ExpressionTest do
     end
 
     property "optional block is ignored when not present" do
-      check all main <- string(:printable),
-                optional <- string(:printable) do
+      check all(
+              main <- non_escaped_string(),
+              optional <- non_escaped_string()
+            ) do
         matcher = Subject.from("#{main}(#{optional})")
 
         assert {:ok, _} = Subject.match(matcher, main)
@@ -54,9 +65,10 @@ defmodule Watermelon.ExpressionTest do
     end
 
     property "incomplete match fails" do
-      check all main <- string(:printable),
-        other <- string(:printable, min_length: 1)
-      do
+      check all(
+              main <- non_escaped_string(),
+              other <- string(:printable, min_length: 1)
+            ) do
         matcher = Subject.from("#{main}#{other}")
         assert :error == Subject.match(matcher, main)
 
@@ -137,7 +149,7 @@ defmodule Watermelon.ExpressionTest do
     property "{string} matches quoted string" do
       matcher = Subject.from("{string}")
 
-      check all string <- string(:printable) do
+      check all(string <- non_escaped_string()) do
         assert {:ok, [string]} == Subject.match(matcher, ~s("#{string}"))
         assert {:ok, [string]} == Subject.match(matcher, ~s('#{string}'))
 
@@ -150,7 +162,7 @@ defmodule Watermelon.ExpressionTest do
     end
 
     property "{} matches any string" do
-      check all string <- string(:printable) do
+      check all(string <- non_escaped_string()) do
         matcher = Subject.from("{}")
         assert {:ok, [string]} == Subject.match(matcher, string)
 
