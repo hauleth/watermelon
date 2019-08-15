@@ -9,7 +9,13 @@ defmodule Watermelon.MixProject do
       elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      package: package()
+      package: package(),
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.html": :test,
+        "coveralls.json": :test
+      ],
+      test_coverage: [tool: ExCoveralls]
     ]
   end
 
@@ -44,7 +50,8 @@ defmodule Watermelon.MixProject do
       {:dialyxir, "~> 1.0.0-rc.4", only: [:dev], runtime: false},
 
       # Testing
-      {:stream_data, "~> 0.4.0", only: [:test]}
+      {:stream_data, "~> 0.4.0", only: [:test]},
+      {:excoveralls, "~> 0.10", only: [:test]}
     ]
   end
 end

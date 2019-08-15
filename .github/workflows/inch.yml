@@ -1,0 +1,22 @@
+name: Inch CI report
+
+on: push
+
+jobs:
+  build:
+    name: Publish Inch CI report
+    runs-on: ubuntu-latest
+    container:
+      image: elixir:1.9.1
+
+    steps:
+    - uses: actions/checkout@master
+    - name: Install Dependencies
+      run: |
+        mix local.rebar --force
+        mix local.hex --force
+        mix deps.get
+    - name: Publish Inch CI report
+      run: mix inch.report
+      env:
+        CI: "true"
