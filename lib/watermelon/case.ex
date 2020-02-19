@@ -94,7 +94,6 @@ defmodule Watermelon.Case do
 
       import unquote(__MODULE__), only: [feature: 1, feature_file: 1]
 
-      @feature_defined false
       @step_modules []
     end
   end
@@ -201,10 +200,9 @@ defmodule Watermelon.Case do
 
   @doc false
   def run_steps(steps, context, modules) do
-    steps
-    |> Enum.reduce(context, fn %{text: text}, context ->
+    Enum.reduce(steps, context, fn %{text: text} = step, context ->
       modules
-      |> Enum.find_value(:error, &step(&1, text, context))
+      |> Enum.find_value(:error, &step(&1, step, context))
       |> case do
         {_, {:ok, context}} -> context
         {_, other} -> raise "Unexpected return value `#{inspect(other)}` in step `#{text}`"
@@ -213,8 +211,8 @@ defmodule Watermelon.Case do
     end)
   end
 
-  defp step(module, text, context) do
-    case module.apply_step(text, context) do
+  defp step(module, step, context) do
+    case module.apply_step(step, context) do
       {:ok, _} = return -> return
       :error -> false
     end
