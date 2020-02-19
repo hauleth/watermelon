@@ -5,7 +5,9 @@ Feature: Agenda
     @foo
     @bar
     Scenario: Add new submission to agenda
-        Given submission named "Foo about bar" described as "Foo bar baz quux"
+        Given submissions:
+          | name          | description      |
+          | Foo about bar | Foo bar baz quux |
         When create submission
         Then it is listed in all submissions
 

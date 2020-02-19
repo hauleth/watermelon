@@ -13,10 +13,10 @@ defmodule Watermelon.Expression do
 
   @opaque match_spec :: [{:text, binary()} | {:match, binary()} | {:optional, binary()}]
 
-  @type t :: %__MODULE__{
-          raw: binary(),
-          match: Regex.t() | match_spec()
-        }
+  @opaque t :: %__MODULE__{
+            raw: binary(),
+            match: Regex.t() | match_spec()
+          }
 
   @doc ~S"""
   Creates new expression using provided type.
@@ -68,6 +68,12 @@ defmodule Watermelon.Expression do
 
     %__MODULE__{raw: string, match: parsed}
   end
+
+  @doc """
+  Return raw content of the pattern.
+  """
+  @spec raw(t()) :: binary()
+  def raw(%__MODULE__{raw: raw}), do: to_string(raw)
 
   # TYPES
 
@@ -215,7 +221,7 @@ defmodule Watermelon.Expression do
   # So as you can see you need to escape only first of the pair (but nothing stops
   # you from escaping both, that will do no harm).
   #
-  # ## TODO:
+  # ## Future improvements
   #
   # - Add support for alternative words
   @spec parse(binary()) :: match_spec()

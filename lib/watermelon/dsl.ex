@@ -72,11 +72,12 @@ defmodule Watermelon.DSL do
     steps = Module.get_attribute(env.module, :steps)
 
     quote bind_quoted: [steps: Macro.escape(steps)] do
-      def apply_step(text, context) do
+      def apply_step(%{text: text} = step, context) do
         unquote(steps)
         |> Enum.find_value(:error, fn {match, name} ->
           case Watermelon.Expression.match(match, text) do
             {:ok, matches} ->
+              context = Map.put(context, :table_data, step.table_data)
               {:ok, Watermelon.DSL.apply(__MODULE__, name, matches, context)}
 
             :error ->
@@ -103,11 +104,11 @@ defmodule Watermelon.DSL do
   end
 
   defmacro defwhen({:when, _, [{:match, _, params}, match]}, options \\ [], do: body) do
-    add_step(:given, match, params, options, body)
+    add_step(:when, match, params, options, body)
   end
 
   defmacro defthen({:when, _, [{:match, _, params}, match]}, options \\ [], do: body) do
-    add_step(:given, match, params, options, body)
+    add_step(:then, match, params, options, body)
   end
 
   defp add_step(step_type, match, params, opts, body) do
@@ -138,7 +139,7 @@ defmodule Watermelon.DSL do
   """
   @spec register_step(Macro.Env.t(), atom(), Watermelon.Expression.t()) :: atom()
   def register_step(%{module: module}, type, expression) do
-    name = :"step #{type} #{expression.raw}"
+    name = :"step #{type} #{Watermelon.Expression.raw(expression)}"
 
     Module.put_attribute(
       module,
