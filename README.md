@@ -35,6 +35,16 @@ Feature: Serve coffee
     And I have deposited £1
     When I press the coffee button
     Then I should be served a coffee
+  Scenario Outline: Coffee count
+    Given there are <start> coffees left in the machine
+    And I have deposited £<money>
+    When I press the coffee button <orders> times
+    Then I should have <left> coffees
+
+    Examples:
+      | start | money | orders | left |
+      |    12 |     5 |      5 |    7 |
+      |    20 |     5 |      5 |   15 |
 ```
 
 In your test module:
@@ -44,26 +54,43 @@ defmodule MyTest do
   use ExUnit.Case
   use Watermelon.Case
 
-  feature_file "coffee.feature"
+  feature_file("coffee.feature")
 
-  setup do
-    %{my_starting: :state, user: %User{}}
+  defgiven match(number) when "there are {int} coffee(s) left in the machine" do
+    {:ok, %{machine: Machine.put_coffee(Machine.new(), number)}}
   end
 
-  defgiven match(number) when ~r/^there (?:is|are) (\d+) coffee(?:s)? left in the machine$/, context: %{user: user} do
-    {:ok, %{machine: Machine.put_coffee(Machine.new, number)}}
+  defgiven match(number) when "I have deposited £{int}", context: %{machine: machine} do
+    {:ok, %{machine: Machine.deposit(machine, nil, number)}}
   end
 
-  defgiven match(number) when "I have deposited £{int}", context: %{user: user, machine: machine} do
-    {:ok, machine: Machine.deposit(machine, user, number)}
+  defwhen match when "I press the coffee button", context: %{machine: machine} do
+    assert {:ok, machine} = Machine.press_coffee(machine)
+    {:ok, machine: machine}
   end
 
-  defwhen match when "I press the coffee button" do
-    Machine.press_coffee(state.machine) # instead would be some `hound` or `wallaby` dsl
+  defwhen match(n) when "I press the coffee button {int} times", context: %{machine: machine} do
+    machine =
+      for _ <- 1..n, reduce: machine do
+        machine ->
+          assert {:ok, machine} = Machine.press_coffee(machine)
+
+          machine
+      end
+
+    {:ok, machine: machine}
   end
 
-  defthen match when "I should be served a coffee" do
-    assert %Coffee{} = Machine.take_drink(state.machine)
+  defthen match when "I should be served a coffee", context: state do
+    assert {:coffee, _} = Machine.take_drink(state.machine)
+
+    :ok
+  end
+
+  defthen match(num) when "I should have {int} coffee(s)", context: %{machine: machine} do
+    assert machine.coffees == num
+
+    :ok
   end
 end
 ```

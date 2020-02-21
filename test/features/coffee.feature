@@ -8,12 +8,13 @@ Feature: Serve coffee
     And I have deposited £1
     When I press the coffee button
     Then I should be served a coffee
-  Scenario Outline: eating
-    Given there are <start> cucumbers
-    When I eat <eat> cucumbers
-    Then I should have <left> cucumbers
+  Scenario Outline: Coffee count
+    Given there are <start> coffees left in the machine
+    And I have deposited £<money>
+    When I press the coffee button <orders> times
+    Then I should have <left> coffees
 
     Examples:
-      | start | eat | left |
-      |    12 |   5 |    7 |
-      |    20 |   5 |   15 |
+      | start | money | orders | left |
+      |    12 |     5 |      5 |    7 |
+      |    20 |     5 |      5 |   15 |

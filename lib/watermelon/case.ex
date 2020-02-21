@@ -87,6 +87,8 @@ defmodule Watermelon.Case do
   or `ExUnit.Callbacks.setup_all/2` like in any other of Your test modules.
   """
 
+  alias Gherkin.Elements, as: G
+
   @doc false
   defmacro __using__(_opts) do
     quote do
@@ -125,7 +127,7 @@ defmodule Watermelon.Case do
   defmacro feature(string) do
     feature = Gherkin.parse(string)
 
-    generate_feature_test(feature)
+    generate_feature_test(feature, __CALLER__)
   end
 
   @doc """
@@ -155,47 +157,54 @@ defmodule Watermelon.Case do
 
     Module.put_attribute(__CALLER__.module, :external_attribute, filename)
 
-    generate_feature_test(feature)
+    generate_feature_test(feature, __CALLER__)
   end
 
-  defp generate_feature_test(feature) do
+  defp generate_feature_test(feature, _env) do
     quote location: :keep, bind_quoted: [feature: Macro.escape(feature)] do
-      step_modules =
-        cond do
-          is_list(@step_modules) -> [__MODULE__ | @step_modules]
-          is_nil(@step_modules) -> [__MODULE__]
-          true -> raise "@step_modules, if set, must be list"
-        end
+      describe "#{feature.name}" do
+        step_modules =
+          case Module.get_attribute(__MODULE__, :step_modules, []) do
+            modules when is_list(modules) -> [__MODULE__ | modules]
+            _ -> raise "@step_modules, if set, must be list"
+          end
 
-      @moduletag Enum.map(feature.tags, &{&1, true})
+        @tag Enum.map(feature.tags, &{&1, true})
 
-      setup context do
-        Watermelon.Case.run_steps(
-          unquote(feature.background_steps),
-          context,
-          unquote(step_modules)
-        )
-      end
-
-      for %Gherkin.Elements.Scenario{name: scenario_name, steps: steps, tags: tags} <-
-            feature.scenarios do
-        name =
-          ExUnit.Case.register_test(
-            __ENV__,
-            :scenario,
-            "#{feature.name} - #{scenario_name}",
-            tags
-          )
-
-        def unquote(name)(context) do
+        setup context do
           Watermelon.Case.run_steps(
-            unquote(Macro.escape(steps)),
+            unquote(feature.background_steps),
             context,
             unquote(step_modules)
           )
         end
+
+        for %{name: scenario_name, steps: steps, tags: tags} <- Watermelon.Case.scenarios(feature) do
+          name =
+            ExUnit.Case.register_test(
+              __ENV__,
+              :scenario,
+              "#{scenario_name}",
+              tags
+            )
+
+          def unquote(name)(context) do
+            Watermelon.Case.run_steps(
+              unquote(Macro.escape(steps)),
+              context,
+              unquote(step_modules)
+            )
+          end
+        end
       end
     end
+  end
+
+  def scenarios(%G.Feature{scenarios: scenarios}) do
+    Enum.flat_map(scenarios, fn
+      %G.Scenario{} = s -> [s]
+      %G.ScenarioOutline{} = outline -> Gherkin.scenarios_for(outline)
+    end)
   end
 
   @doc false
