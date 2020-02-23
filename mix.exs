@@ -28,8 +28,16 @@ defmodule Watermelon.MixProject do
         {"version", version} = List.keyfind(data, "version", 0)
         version
       _ ->
-        {version, 0} = System.cmd("git", ~w[describe --dirty=+dirty])
-        version = String.trim(version)
+        version =
+          case System.cmd("git", ~w[describe --dirty=+dirty]) do
+            {version, 0} ->
+              String.trim(version)
+
+            {_, code} ->
+              Mix.shell().error("Git exited with code #{code}, falling back to 0.0.0")
+
+              "0.0.0"
+          end
 
         case Version.parse(version) do
           {:ok, %Version{pre: ["pre" <> _ | _]} = version} ->
