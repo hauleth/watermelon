@@ -5,7 +5,7 @@ defmodule Watermelon.MixProject do
     [
       app: :watermelon,
       description: "Super simple Gherkin features to ExUnit tests translator",
-      version: "0.1.1",
+      version: version(),
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -22,10 +22,37 @@ defmodule Watermelon.MixProject do
     ]
   end
 
+  defp version do
+    case :file.consult('hex_metadata.config') do
+      {:ok, data} ->
+        {"version", version} = List.keyfind(data, "version", 0)
+        version
+      _ ->
+        {version, 0} = System.cmd("git", ~w[describe --dirty=+dirty])
+        version = String.trim(version)
+
+        case Version.parse(version) do
+          {:ok, %Version{pre: ["pre" <> _ | _]} = version} ->
+            to_string(version)
+
+          {:ok, %Version{pre: []} = version} ->
+            to_string(version)
+
+          {:ok, %Version{patch: patch, pre: pre} = version} ->
+            to_string(%{version | patch: patch + 1, pre: ["dev" | pre]})
+
+          :error ->
+            Mix.shell().error("Failed to parse #{version}, falling back to 0.0.0")
+
+            "0.0.0"
+        end
+    end
+  end
+
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:ex_unit, :logger]
     ]
   end
 
