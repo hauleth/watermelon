@@ -27,6 +27,7 @@ defmodule Watermelon.MixProject do
       {:ok, data} ->
         {"version", version} = List.keyfind(data, "version", 0)
         version
+
       _ ->
         version =
           case System.cmd("git", ~w[describe --dirty=+dirty]) do
