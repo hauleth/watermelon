@@ -2,6 +2,9 @@
 Feature: Agenda
     Submissions are the single proposals for placing into the Agenda.
 
+  Background: Assume the user is authenticated for all scenarios
+    Given the user is authenticated
+
     @foo
     @bar
     Scenario: Add new submission to agenda
@@ -16,3 +19,7 @@ Feature: Agenda
         And subscribing to "submissions"
         When create submission
         Then there is event
+
+  Scenario: Logout makes user not authenticated
+    When the user logs out
+    Then the user is not authenticated

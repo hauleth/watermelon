@@ -34,6 +34,18 @@ defmodule Watermelon.CaseTest do
     defthen match when "there is event" do
       :ok
     end
+
+    defgiven match when "the user is authenticated" do
+      {:ok, %{auth: true}}
+    end
+
+    defthen match when "the user is not authenticated", context: %{auth: is_auth} do
+      assert is_auth == false
+    end
+
+    defwhen match when "the user logs out", context: %{auth: true} do
+      {:ok, %{auth: false}}
+    end
   end
 
   @step_modules [Foo]
