@@ -173,7 +173,7 @@ defmodule Watermelon.Case do
 
         setup context do
           Watermelon.Case.run_steps(
-            unquote(feature.background_steps),
+            unquote(Macro.escape(feature.background_steps)),
             context,
             unquote(step_modules)
           )
